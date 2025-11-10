@@ -8,11 +8,12 @@ import {
     actualizarActividad,
     eliminarActividad
 } from '../controllers/actividad.controller';
+import { uploadFileMiddleware } from '../middleware/upload'; // <-- Importación del Middleware
 
 const router = Router();
 
-// Rutas de Lectura y Creación (GET y POST a la colección)
-router.post('/', registrarActividad);
+// El POST utiliza el middleware de subida antes del controlador
+router.post('/', uploadFileMiddleware, registrarActividad);
 router.get('/', obtenerActividades);
 
 // Rutas Específicas (GET, PUT y DELETE por ID)

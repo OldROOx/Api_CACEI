@@ -1,3 +1,5 @@
+// src/routes/evidencia.routes.ts
+
 import { Router } from 'express';
 import {
     registrarEvidencia,
@@ -6,10 +8,12 @@ import {
     actualizarEvidencia,
     eliminarEvidencia
 } from '../controllers/evidencia.controller';
+import { uploadFileMiddleware } from '../middleware/upload'; // <-- Importación del Middleware
 
 const router = Router();
 
-router.post('/', registrarEvidencia);
+// El POST utiliza el middleware de subida
+router.post('/', uploadFileMiddleware, registrarEvidencia);
 router.get('/', obtenerEvidencias);
 router.get('/:id', obtenerEvidenciaPorId);
 router.put('/:id', actualizarEvidencia);

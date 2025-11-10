@@ -16,7 +16,7 @@ import asistenciaRoutes from './routes/asistencia.routes';
 import evidenciaRoutes from './routes/evidencia.routes';
 import calificacionRoutes from './routes/calificacion.routes';
 
-// Cargar la especificación de Swagger (ASUME que tienes un archivo ./swagger.yaml o ./swagger.json)
+// Cargar la especificación de Swagger (ASUME que tienes un archivo ./swagger.yaml)
 const swaggerDocument = YAML.load('./swagger.yaml');
 
 const app = express();
@@ -27,14 +27,17 @@ const PORT = process.env.PORT || 3000;
 // ==========================================================
 app.use(express.json());
 app.use(cors({
-    // Configura el origen para permitir la comunicación con el frontend de React (puerto común de Vite)
     origin: 'http://localhost:5173'
 }));
 
 // ==========================================================
+// CONFIGURACIÓN DE ARCHIVOS ESTÁTICOS (Permite ver imágenes y PDFs/Excels)
+// ==========================================================
+app.use('/uploads', express.static('uploads'));
+
+// ==========================================================
 // DOCUMENTACIÓN SWAGGER/OPENAPI
 // ==========================================================
-// Servirá la interfaz de Swagger UI en http://localhost:3000/api-docs
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 
