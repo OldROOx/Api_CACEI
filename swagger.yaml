@@ -1,0 +1,572 @@
+openapi: 3.0.0
+info:
+  title: API CACEI-ADMISION
+  version: 1.0.0
+  description: API REST para la gestión de Promoción Educativa y Curso de Inducción/Nivelación.
+servers:
+  - url: http://localhost:3000/api
+    description: Servidor de Desarrollo (Express/MySQL)
+tags:
+  - name: 1. Catálogos Base (Docentes, Escuelas, Estudiantes)
+    description: Gestión de entidades fundamentales
+  - name: 2. Promoción (Actividades)
+    description: Registro y consulta de actividades de promoción
+  - name: 3. Nivelación (Clases y Asistencia)
+    description: Programación de clases y control de asistencia
+  - name: 4. Inducción (Registros Finales)
+    description: Subida de evidencias y registro de calificaciones
+
+paths:
+  # ==========================================================
+  # 1. MÓDULO DOCENTE (CRUD)
+  # ==========================================================
+  /docentes:
+    get:
+      tags: [1. Catálogos Base (Docentes, Escuelas, Estudiantes)]
+      summary: Obtener todos los docentes
+      responses:
+        '200':
+          description: Lista de docentes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Docente'
+    post:
+      tags: [1. Catálogos Base (Docentes, Escuelas, Estudiantes)]
+      summary: Registrar un nuevo docente/tutor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Docente'
+      responses:
+        '201': { description: Docente creado exitosamente. }
+        '409': { description: Conflicto - El correo electrónico ya está registrado. }
+  /docentes/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    get:
+      tags: [1. Catálogos Base (Docentes, Escuelas, Estudiantes)]
+      summary: Obtener docente por ID
+      responses:
+        '200': { description: OK. }
+        '404': { description: Docente no encontrado. }
+    put:
+      tags: [1. Catálogos Base (Docentes, Escuelas, Estudiantes)]
+      summary: Actualizar docente por ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Docente'
+      responses:
+        '200': { description: Docente actualizado. }
+        '404': { description: Docente no encontrado. }
+    delete:
+      tags: [1. Catálogos Base (Docentes, Escuelas, Estudiantes)]
+      summary: Eliminar docente por ID
+      responses:
+        '200': { description: Docente eliminado. }
+        '404': { description: Docente no encontrado. }
+
+  # ==========================================================
+  # 1. MÓDULO PREPARATORIA (CRUD)
+  # ==========================================================
+  /preparatorias:
+    get:
+      tags: [1. Catálogos Base (Docentes, Escuelas, Estudiantes)]
+      summary: Obtener todas las preparatorias
+      responses:
+        '200':
+          description: Lista de preparatorias
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Preparatoria'
+    post:
+      tags: [1. Catálogos Base (Docentes, Escuelas, Estudiantes)]
+      summary: Registrar una nueva preparatoria
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Preparatoria'
+      responses:
+        '201': { description: Preparatoria creada exitosamente. }
+  /preparatorias/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    get:
+      tags: [1. Catálogos Base (Docentes, Escuelas, Estudiantes)]
+      summary: Obtener preparatoria por ID
+      responses:
+        '200': { description: OK. }
+        '404': { description: Preparatoria no encontrada. }
+    put:
+      tags: [1. Catálogos Base (Docentes, Escuelas, Estudiantes)]
+      summary: Actualizar preparatoria por ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Preparatoria'
+      responses:
+        '200': { description: Preparatoria actualizada. }
+        '404': { description: Preparatoria no encontrada. }
+    delete:
+      tags: [1. Catálogos Base (Docentes, Escuelas, Estudiantes)]
+      summary: Eliminar preparatoria por ID
+      responses:
+        '200': { description: Preparatoria eliminada. }
+        '404': { description: Preparatoria no encontrada. }
+
+  # ==========================================================
+  # 1. MÓDULO ESTUDIANTE (CRUD)
+  # ==========================================================
+  /estudiantes:
+    get:
+      tags: [1. Catálogos Base (Docentes, Escuelas, Estudiantes)]
+      summary: Obtener todos los estudiantes
+      responses:
+        '200':
+          description: Lista de estudiantes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Estudiante'
+    post:
+      tags: [1. Catálogos Base (Docentes, Escuelas, Estudiantes)]
+      summary: Registrar un nuevo estudiante
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Estudiante'
+      responses:
+        '201': { description: Estudiante creado exitosamente. }
+        '409': { description: Conflicto - El correo electrónico ya está registrado. }
+  /estudiantes/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    get:
+      tags: [1. Catálogos Base (Docentes, Escuelas, Estudiantes)]
+      summary: Obtener estudiante por ID
+      responses:
+        '200': { description: OK. }
+        '404': { description: Estudiante no encontrado. }
+    put:
+      tags: [1. Catálogos Base (Docentes, Escuelas, Estudiantes)]
+      summary: Actualizar estudiante por ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Estudiante'
+      responses:
+        '200': { description: Estudiante actualizado. }
+        '404': { description: Estudiante no encontrado. }
+    delete:
+      tags: [1. Catálogos Base (Docentes, Escuelas, Estudiantes)]
+      summary: Eliminar estudiante por ID
+      responses:
+        '200': { description: Estudiante eliminado. }
+        '404': { description: Estudiante no encontrado. }
+
+  # ==========================================================
+  # 2. MÓDULO ACTIVIDAD PROMOCIÓN (CRUD)
+  # ==========================================================
+  /actividades:
+    get:
+      tags: [2. Promoción (Actividades)]
+      summary: Obtener todas las actividades de promoción (para RegistrosActividades.jsx)
+      responses:
+        '200':
+          description: Lista detallada de actividades
+          content:
+            application/json:
+              schema: { type: array, items: { type: object } }
+    post:
+      tags: [2. Promoción (Actividades)]
+      summary: Registrar nueva actividad (Visitada, Invitada o Digital)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActividadPromocion'
+      responses:
+        '201': { description: Actividad registrada exitosamente. }
+        '400': { description: Faltan campos obligatorios o condicionales. }
+        '404': { description: Error de FK (DocenteID o PrepID no existe). }
+  /actividades/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    get:
+      tags: [2. Promoción (Actividades)]
+      summary: Obtener actividad por ID
+      responses:
+        '200': { description: OK. }
+        '404': { description: Actividad no encontrada. }
+    put:
+      tags: [2. Promoción (Actividades)]
+      summary: Actualizar actividad por ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActividadPromocion'
+      responses:
+        '200': { description: Actividad actualizada. }
+        '404': { description: Actividad no encontrada o error de FK. }
+    delete:
+      tags: [2. Promoción (Actividades)]
+      summary: Eliminar actividad por ID
+      responses:
+        '200': { description: Actividad eliminada. }
+        '404': { description: Actividad no encontrada. }
+
+  # ==========================================================
+  # 3. MÓDULO CLASE NIVELACIÓN (CRUD)
+  # ==========================================================
+  /clases:
+    get:
+      tags: [3. Nivelación (Clases y Asistencia)]
+      summary: Obtener todas las clases de nivelación
+      responses:
+        '200': { description: Lista de clases. }
+    post:
+      tags: [3. Nivelación (Clases y Asistencia)]
+      summary: Programar una nueva clase de nivelación
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClaseNivelacion'
+      responses:
+        '201': { description: Clase programada exitosamente. }
+        '404': { description: Error de FK (DocenteID no existe). }
+  /clases/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    get:
+      tags: [3. Nivelación (Clases y Asistencia)]
+      summary: Obtener clase por ID
+      responses:
+        '200': { description: OK. }
+        '404': { description: Clase no encontrada. }
+    put:
+      tags: [3. Nivelación (Clases y Asistencia)]
+      summary: Actualizar clase por ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClaseNivelacion'
+      responses:
+        '200': { description: Clase actualizada. }
+        '404': { description: Clase no encontrada o error de FK. }
+    delete:
+      tags: [3. Nivelación (Clases y Asistencia)]
+      summary: Eliminar clase por ID
+      responses:
+        '200': { description: Clase eliminada. }
+        '404': { description: Clase no encontrada. }
+
+  # ==========================================================
+  # 3. MÓDULO ASISTENCIA (CRUD + LÓGICA)
+  # ==========================================================
+  /asistencia:
+    post:
+      tags: [3. Nivelación (Clases y Asistencia)]
+      summary: Registrar/Actualizar asistencia masiva (Upsert)
+      description: Inserta o actualiza el estado de asistencia de múltiples estudiantes para una clase.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                registros:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/RegistroAsistencia'
+      responses:
+        '201': { description: Asistencia registrada/actualizada. }
+        '404': { description: Error de FK (ClaseID o EstudianteID no existe). }
+  /asistencia/resumen:
+    get:
+      tags: [3. Nivelación (Clases y Asistencia)]
+      summary: Obtener resumen de asistencia reciente (para dashboard)
+      responses:
+        '200': { description: Resumen de las últimas asistencias tomadas. }
+  /asistencia/clase/{claseId}:
+    parameters:
+      - name: claseId
+        in: path
+        required: true
+        schema: { type: integer }
+    get:
+      tags: [3. Nivelación (Clases y Asistencia)]
+      summary: Obtener registros de asistencia para una ClaseID
+      responses:
+        '200': { description: Lista de estudiantes y su estado de asistencia. }
+  /asistencia/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    get:
+      tags: [3. Nivelación (Clases y Asistencia)]
+      summary: Obtener registro individual por AsistenciaID
+      responses:
+        '200': { description: OK. }
+        '404': { description: Registro no encontrado. }
+    put:
+      tags: [3. Nivelación (Clases y Asistencia)]
+      summary: Actualizar registro individual por AsistenciaID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistroAsistencia'
+      responses:
+        '200': { description: Registro actualizado. }
+        '404': { description: Registro no encontrado o error de FK. }
+    delete:
+      tags: [3. Nivelación (Clases y Asistencia)]
+      summary: Eliminar registro individual por AsistenciaID
+      responses:
+        '200': { description: Registro eliminado. }
+        '404': { description: Registro no encontrado. }
+
+  # ==========================================================
+  # 4. MÓDULO EVIDENCIAS CURSO (CRUD)
+  # ==========================================================
+  /evidencias:
+    get:
+      tags: [4. Inducción (Registros Finales)]
+      summary: Obtener todas las evidencias subidas
+      responses:
+        '200': { description: Lista de evidencias. }
+    post:
+      tags: [4. Inducción (Registros Finales)]
+      summary: Registrar una nueva evidencia (subida de archivo)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvidenciaCurso'
+      responses:
+        '201': { description: Evidencia registrada. }
+  /evidencias/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    get:
+      tags: [4. Inducción (Registros Finales)]
+      summary: Obtener evidencia por ID
+      responses:
+        '200': { description: OK. }
+        '404': { description: Evidencia no encontrada. }
+    put:
+      tags: [4. Inducción (Registros Finales)]
+      summary: Actualizar evidencia (ej. cambiar status)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvidenciaCurso'
+      responses:
+        '200': { description: Evidencia actualizada. }
+        '404': { description: Evidencia no encontrada. }
+    delete:
+      tags: [4. Inducción (Registros Finales)]
+      summary: Eliminar evidencia por ID
+      responses:
+        '200': { description: Evidencia eliminada. }
+
+  # ==========================================================
+  # 4. MÓDULO CALIFICACIONES INDUCCIÓN (CRUD)
+  # ==========================================================
+  /calificaciones:
+    get:
+      tags: [4. Inducción (Registros Finales)]
+      summary: Obtener todas las calificaciones de inducción
+      responses:
+        '200': { description: Lista de calificaciones. }
+    post:
+      tags: [4. Inducción (Registros Finales)]
+      summary: Registrar una nueva calificación
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CalificacionInduccion'
+      responses:
+        '201': { description: Calificación registrada. }
+  /calificaciones/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    get:
+      tags: [4. Inducción (Registros Finales)]
+      summary: Obtener calificación por ID
+      responses:
+        '200': { description: OK. }
+        '404': { description: Calificación no encontrada. }
+    put:
+      tags: [4. Inducción (Registros Finales)]
+      summary: Actualizar calificación
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CalificacionInduccion'
+      responses:
+        '200': { description: Calificación actualizada. }
+        '404': { description: Calificación no encontrada. }
+    delete:
+      tags: [4. Inducción (Registros Finales)]
+      summary: Eliminar calificación por ID
+      responses:
+        '200': { description: Calificación eliminada. }
+
+
+components:
+  schemas:
+    # --------------------------------------------------------
+    # 1. Catálogos Base
+    # --------------------------------------------------------
+    Docente:
+      type: object
+      properties:
+        DocenteID: { type: integer, readOnly: true }
+        Nombre: { type: string }
+        Apellidos: { type: string }
+        Correo: { type: string, format: email, description: Debe ser único. }
+        Especialidad: { type: string }
+        Departamento: { type: string }
+      required: [Nombre, Apellidos, Correo, Especialidad, Departamento]
+    Preparatoria:
+      type: object
+      properties:
+        PrepID: { type: integer, readOnly: true }
+        Nombre: { type: string }
+        Clave: { type: string, nullable: true }
+        Tipo: { type: string, enum: [General, Técnico, Telebachillerato] }
+        Ciudad: { type: string }
+        Estado: { type: string }
+        Director: { type: string, nullable: true }
+      required: [Nombre, Tipo, Ciudad, Estado]
+    Estudiante:
+      type: object
+      properties:
+        EstudianteID: { type: integer, readOnly: true }
+        Nombre: { type: string }
+        Correo: { type: string, format: email, description: Debe ser único. }
+      required: [Nombre, Correo]
+
+    # --------------------------------------------------------
+    # 2. Promoción
+    # --------------------------------------------------------
+    ActividadPromocion:
+      type: object
+      properties:
+        ActividadID: { type: integer, readOnly: true }
+        DocenteID: { type: integer, description: Foreign Key a Docente. }
+        PrepID: { type: integer, nullable: true, description: FK a Preparatoria. Null si Tipo=Digital. }
+        Tipo: { type: string, enum: [Visitada, Invitada, Digital] }
+        Fecha: { type: string, format: date }
+        EstudiantesAlcanzados: { type: integer }
+        CarrerasPromovidas: { type: string, nullable: true }
+        Observaciones: { type: string, nullable: true }
+        EvidenciasURL: { type: string, nullable: true, description: Ruta al archivo subido. }
+      required: [DocenteID, Tipo, Fecha, EstudiantesAlcanzados]
+
+    # --------------------------------------------------------
+    # 3. Nivelación y Asistencia
+    # --------------------------------------------------------
+    ClaseNivelacion:
+      type: object
+      properties:
+        ClaseID: { type: integer, readOnly: true }
+        DocenteID: { type: integer, description: Foreign Key a Docente. }
+        Titulo: { type: string }
+        Status: { type: string, enum: [Programada, Completada] }
+        Fecha: { type: string, format: date }
+        Ubicacion: { type: string, nullable: true }
+      required: [DocenteID, Titulo, Status, Fecha]
+    RegistroAsistencia:
+      type: object
+      properties:
+        AsistenciaID: { type: integer, readOnly: true }
+        ClaseID: { type: integer, description: Foreign Key a ClaseNivelacion. }
+        EstudianteID: { type: integer, description: Foreign Key a Estudiante. }
+        Fecha: { type: string, format: date }
+        Status: { type: string, enum: [Presente, Ausente] }
+      required: [ClaseID, EstudianteID, Fecha, Status]
+
+    # --------------------------------------------------------
+    # 4. Registros Finales
+    # --------------------------------------------------------
+    EvidenciaCurso:
+      type: object
+      properties:
+        EvidenciaID: { type: integer, readOnly: true }
+        EstudianteID: { type: integer, description: Foreign Key a Estudiante. }
+        Titulo: { type: string }
+        Fecha: { type: string, format: date }
+        Status: { type: string, enum: [Aprobado, Pendiente, Rechazado], description: Estado de revisión. }
+        ArchivoURL: { type: string, nullable: true, description: Ruta al archivo subido. }
+      required: [EstudianteID, Titulo, Fecha, Status]
+    CalificacionInduccion:
+      type: object
+      properties:
+        CalificacionID: { type: integer, readOnly: true }
+        EstudianteID: { type: integer, description: Foreign Key a Estudiante. }
+        Titulo: { type: string }
+        PuntuacionTotal: { type: number, format: float }
+        FechaRegistro: { type: string, format: date }
+        ArchivoFuente: { type: string, nullable: true, description: Archivo original de carga masiva. }
+      required: [EstudianteID, Titulo, PuntuacionTotal, FechaRegistro]
