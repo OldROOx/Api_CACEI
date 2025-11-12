@@ -1,6 +1,6 @@
 import express from 'express';
 import 'dotenv/config';
-import cors from 'cors';
+// Eliminada: import cors from 'cors'; // Ya no es necesario si el acceso es abierto o se maneja directamente
 
 // Módulos de Documentación
 import swaggerUi from 'swagger-ui-express';
@@ -26,12 +26,10 @@ const PORT = process.env.PORT || 3000;
 // MIDDLEWARES GLOBALES
 // ==========================================================
 app.use(express.json());
-app.use(cors({
-    origin: 'http://localhost:5173'
-}));
+// Eliminada: app.use(cors({ origin: 'http://localhost:5173' }));
 
 // ==========================================================
-// CONFIGURACIÓN DE ARCHIVOS ESTÁTICOS (Permite ver imágenes y PDFs/Excels)
+// CONFIGURACIÓN DE ARCHIVOS ESTÁTICOS
 // ==========================================================
 app.use('/uploads', express.static('uploads'));
 
@@ -44,6 +42,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 // ==========================================================
 // RUTAS DE LA API CACEI-ADMISION (COMPLETAS)
 // ==========================================================
+// Eliminadas las rutas de /api/auth
 
 // 1. Catálogos
 app.use('/api/docentes', docenteRoutes);
@@ -61,7 +60,7 @@ app.use('/api/calificaciones', calificacionRoutes);
 
 // Ruta de prueba
 app.get('/', (req, res) => {
-    res.send('API de CACEI-Admision está completa y funcionando. Visita /api-docs para la documentación.');
+    res.send('API de CACEI-Admision está completa y funcionando. ACCESO ABIERTO.');
 });
 
 // Iniciar el servidor
