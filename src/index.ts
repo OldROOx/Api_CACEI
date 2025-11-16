@@ -14,6 +14,7 @@ import claseRoutes from './routes/clase.routes';
 import estudianteRoutes from './routes/estudiante.routes';
 import asistenciaRoutes from './routes/asistencia.routes';
 import evidenciaRoutes from './routes/evidencia.routes';
+import evidenciaActividadRoutes from './routes/evidenciaActividad.routes'; // ← NUEVO
 import calificacionRoutes from './routes/calificacion.routes';
 
 // Cargar la especificación de Swagger
@@ -57,6 +58,7 @@ app.use('/api/estudiantes', estudianteRoutes);
 
 // 2. Promoción
 app.use('/api/actividades', actividadRoutes);
+app.use('/api/evidencias-actividades', evidenciaActividadRoutes); // ← NUEVO
 
 // 3. Inducción y Nivelación (Transaccionales)
 app.use('/api/clases', claseRoutes);
