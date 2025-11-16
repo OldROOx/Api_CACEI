@@ -1,11 +1,10 @@
-// src/interfaces/clase.interface.ts
-
-// Mapea la tabla ClaseNivelacion
-export interface ClaseNivelacion {
-    ClaseID?: number;
-    DocenteID: number; // FK a Docente
-    Titulo: string;
-    Status: 'Programada' | 'Completada';
-    Fecha: string; // YYYY-MM-DD
-    Ubicacion?: string;
+export interface Clase {
+    ClaseID: number;
+    DocenteID: number;
+    Materia: string;
+    Fecha: Date;
+    Horario: string;
+    Tema?: string;
+    Salon?: string;
+    Observaciones?: string;
 }

@@ -1,6 +1,6 @@
 import express from 'express';
 import 'dotenv/config';
-import fs from 'fs'; // ✅ IMPORTAR fs
+import fs from 'fs';
 
 // Módulos de Documentación
 import swaggerUi from 'swagger-ui-express';
