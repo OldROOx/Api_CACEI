@@ -1,6 +1,6 @@
 import express from 'express';
 import 'dotenv/config';
-// Eliminada: import cors from 'cors'; // Ya no es necesario si el acceso es abierto o se maneja directamente
+import fs from 'fs'; // ✅ IMPORTAR fs
 
 // Módulos de Documentación
 import swaggerUi from 'swagger-ui-express';
@@ -16,17 +16,25 @@ import asistenciaRoutes from './routes/asistencia.routes';
 import evidenciaRoutes from './routes/evidencia.routes';
 import calificacionRoutes from './routes/calificacion.routes';
 
-// Cargar la especificación de Swagger (ASUME que tienes un archivo ./swagger.yaml)
+// Cargar la especificación de Swagger
 const swaggerDocument = YAML.load('./swagger.yaml');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ==========================================================
+// ✅ CREAR CARPETA UPLOADS SI NO EXISTE
+// ==========================================================
+const uploadsDir = './uploads';
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+    console.log('📁 Carpeta "uploads" creada automáticamente');
+}
+
+// ==========================================================
 // MIDDLEWARES GLOBALES
 // ==========================================================
 app.use(express.json());
-// Eliminada: app.use(cors({ origin: 'http://localhost:5173' }));
 
 // ==========================================================
 // CONFIGURACIÓN DE ARCHIVOS ESTÁTICOS
@@ -38,11 +46,9 @@ app.use('/uploads', express.static('uploads'));
 // ==========================================================
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-
 // ==========================================================
 // RUTAS DE LA API CACEI-ADMISION (COMPLETAS)
 // ==========================================================
-// Eliminadas las rutas de /api/auth
 
 // 1. Catálogos
 app.use('/api/docentes', docenteRoutes);

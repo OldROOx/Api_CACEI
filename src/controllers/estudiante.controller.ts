@@ -1,10 +1,8 @@
-// src/controllers/estudiante.controller.ts
-
 import { Request, Response } from 'express';
 import { query } from '../database';
 import { Estudiante } from '../interfaces/estudiante.interface';
+import * as XLSX from 'xlsx';
 
-// Función de guardia de tipo (reutilizada)
 const isErrorWithMessage = (e: unknown): e is { message: string } => {
     return (
         typeof e === 'object' &&
@@ -15,22 +13,21 @@ const isErrorWithMessage = (e: unknown): e is { message: string } => {
 };
 
 // ==========================================================
-// C R E A T E
+// C R E A T E - Registro Manual
 // ==========================================================
 
-/**
- * POST /api/estudiantes
- * Registra un nuevo estudiante.
- */
 export const registrarEstudiante = async (req: Request, res: Response) => {
-    const { Nombre, Correo } = req.body as Estudiante;
+    const { Nombre, Apellidos, Matricula, Correo, Telefono, PrepID, CarreraInteres, Municipio, EsAceptado, Notas } = req.body;
 
-    if (!Nombre || !Correo) {
-        return res.status(400).json({ message: 'Faltan campos obligatorios: Nombre y Correo.' });
+    if (!Nombre || !Apellidos || !Correo) {
+        return res.status(400).json({ message: 'Faltan campos obligatorios: Nombre, Apellidos y Correo.' });
     }
 
-    const sql = 'INSERT INTO Estudiante (Nombre, Correo) VALUES (?, ?)';
-    const values = [Nombre, Correo];
+    const sql = `
+        INSERT INTO Estudiante (Nombre, Apellidos, Matricula, Correo, Telefono, PrepID, CarreraInteres, Municipio, EsAceptado, Notas)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    const values = [Nombre, Apellidos, Matricula, Correo, Telefono, PrepID || null, CarreraInteres, Municipio, EsAceptado || false, Notas];
 
     try {
         const result = await query(sql, values) as any;
@@ -40,15 +37,110 @@ export const registrarEstudiante = async (req: Request, res: Response) => {
         });
     } catch (error) {
         let errorMessage = 'Error al registrar el estudiante.';
-
         if (isErrorWithMessage(error)) {
             errorMessage = error.message;
             if (errorMessage.includes('Duplicate entry')) {
                 return res.status(409).json({ message: 'El correo electrónico ya está registrado.' });
             }
         }
-
         res.status(500).json({ message: 'Error interno del servidor.', details: errorMessage });
+    }
+};
+
+// ==========================================================
+// C R E A T E - Carga Masiva desde Excel
+// ==========================================================
+
+export const cargarEstudiantesMasivo = async (req: Request, res: Response) => {
+    if (!req.file) {
+        return res.status(400).json({ message: 'No se proporcionó un archivo Excel.' });
+    }
+
+    try {
+        // Leer el archivo Excel
+        const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+
+        // Convertir a JSON
+        const data = XLSX.utils.sheet_to_json(worksheet);
+
+        if (data.length === 0) {
+            return res.status(400).json({ message: 'El archivo Excel está vacío o no tiene el formato correcto.' });
+        }
+
+        // Validar estructura de datos
+        const requiredColumns = ['Nombre', 'Apellidos', 'Correo'];
+        const firstRow = data[0] as any;
+        const missingColumns = requiredColumns.filter(col => !(col in firstRow));
+
+        if (missingColumns.length > 0) {
+            return res.status(400).json({
+                message: `Faltan columnas obligatorias: ${missingColumns.join(', ')}`,
+                ejemplo: 'Asegúrese de que el Excel tenga las columnas: Nombre, Apellidos, Correo, Matricula, Telefono, Preparatoria, CarreraInteres, Municipio'
+            });
+        }
+
+        // Obtener preparatorias para mapear nombres a IDs
+        const preparatorias = await query('SELECT PrepID, Nombre FROM Preparatoria') as any[];
+        const prepMap = preparatorias.reduce((acc: any, prep: any) => {
+            acc[prep.Nombre.toLowerCase()] = prep.PrepID;
+            return acc;
+        }, {});
+
+        let insertados = 0;
+        let errores = 0;
+        const erroresDetalle: string[] = [];
+
+        // Insertar cada estudiante
+        for (let i = 0; i < data.length; i++) {
+            const row = data[i] as any;
+
+            try {
+                // Mapear PrepID desde nombre de preparatoria
+                let prepID = null;
+                if (row.Preparatoria) {
+                    prepID = prepMap[row.Preparatoria.toLowerCase()] || null;
+                }
+
+                const sql = `
+                    INSERT INTO Estudiante (Nombre, Apellidos, Matricula, Correo, Telefono, PrepID, CarreraInteres, Municipio, EsAceptado, Notas)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `;
+                const values = [
+                    row.Nombre,
+                    row.Apellidos,
+                    row.Matricula || null,
+                    row.Correo,
+                    row.Telefono || null,
+                    prepID,
+                    row.CarreraInteres || null,
+                    row.Municipio || null,
+                    row.EsAceptado === 'SI' || row.EsAceptado === 'Sí' || row.EsAceptado === true,
+                    row.Notas || null
+                ];
+
+                await query(sql, values);
+                insertados++;
+            } catch (error) {
+                errores++;
+                erroresDetalle.push(`Fila ${i + 2}: ${row.Nombre} ${row.Apellidos} - ${isErrorWithMessage(error) ? error.message : 'Error desconocido'}`);
+            }
+        }
+
+        res.status(201).json({
+            message: `Carga masiva completada. ${insertados} estudiantes insertados, ${errores} errores.`,
+            insertados,
+            errores,
+            erroresDetalle: erroresDetalle.slice(0, 10) // Máximo 10 errores en respuesta
+        });
+
+    } catch (error) {
+        console.error('Error procesando archivo Excel:', error);
+        res.status(500).json({
+            message: 'Error procesando el archivo Excel.',
+            details: isErrorWithMessage(error) ? error.message : 'Error desconocido'
+        });
     }
 };
 
@@ -56,13 +148,17 @@ export const registrarEstudiante = async (req: Request, res: Response) => {
 // R E A D
 // ==========================================================
 
-/**
- * GET /api/estudiantes
- * Obtiene la lista completa de estudiantes.
- */
 export const obtenerEstudiantes = async (req: Request, res: Response) => {
     try {
-        const estudiantes = await query<Estudiante>('SELECT EstudianteID, Nombre, Correo FROM Estudiante ORDER BY Nombre ASC');
+        const sql = `
+            SELECT 
+                E.*,
+                P.Nombre AS PreparatoriaNombre
+            FROM Estudiante E
+            LEFT JOIN Preparatoria P ON E.PrepID = P.PrepID
+            ORDER BY E.Nombre ASC
+        `;
+        const estudiantes = await query(sql);
         res.status(200).json(estudiantes);
     } catch (error) {
         let errorMessage = 'Error al obtener la lista de estudiantes.';
@@ -73,16 +169,11 @@ export const obtenerEstudiantes = async (req: Request, res: Response) => {
     }
 };
 
-/**
- * GET /api/estudiantes/:id
- * Obtiene un estudiante por su ID.
- */
 export const obtenerEstudiantePorId = async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
-        const sql = 'SELECT EstudianteID, Nombre, Correo FROM Estudiante WHERE EstudianteID = ?';
-        const estudiante = await query<Estudiante>(sql, [id]);
-
+        const sql = 'SELECT * FROM Estudiante WHERE EstudianteID = ?';
+        const estudiante = await query(sql, [id]);
         if (estudiante.length === 0) {
             return res.status(404).json({ message: 'Estudiante no encontrado.' });
         }
@@ -90,9 +181,35 @@ export const obtenerEstudiantePorId = async (req: Request, res: Response) => {
     } catch (error) {
         let errorMessage = 'Error al obtener el estudiante.';
         if (isErrorWithMessage(error)) {
-            errorMessage = errorMessage;
+            errorMessage = error.message;
         }
         res.status(500).json({ message: errorMessage });
+    }
+};
+
+// Endpoint para obtener estadísticas por municipio/preparatoria
+export const obtenerEstadisticasEstudiantes = async (req: Request, res: Response) => {
+    try {
+        const porMunicipio = await query(`
+            SELECT Municipio, COUNT(*) as cantidad 
+            FROM Estudiante 
+            WHERE Municipio IS NOT NULL AND Municipio != ''
+            GROUP BY Municipio
+        `);
+
+        const porPreparatoria = await query(`
+            SELECT P.Nombre as preparatoria, COUNT(E.EstudianteID) as cantidad
+            FROM Estudiante E
+            JOIN Preparatoria P ON E.PrepID = P.PrepID
+            GROUP BY P.Nombre
+        `);
+
+        res.status(200).json({
+            porMunicipio,
+            porPreparatoria
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al obtener estadísticas.' });
     }
 };
 
@@ -100,20 +217,20 @@ export const obtenerEstudiantePorId = async (req: Request, res: Response) => {
 // U P D A T E
 // ==========================================================
 
-/**
- * PUT /api/estudiantes/:id
- * Actualiza un estudiante existente.
- */
 export const actualizarEstudiante = async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { Nombre, Correo } = req.body as Estudiante;
+    const { Nombre, Apellidos, Matricula, Correo, Telefono, PrepID, CarreraInteres, Municipio, EsAceptado, Notas } = req.body;
 
-    if (!Nombre || !Correo) {
+    if (!Nombre || !Apellidos || !Correo) {
         return res.status(400).json({ message: 'Faltan campos obligatorios para actualizar el estudiante.' });
     }
 
-    const sql = 'UPDATE Estudiante SET Nombre = ?, Correo = ? WHERE EstudianteID = ?';
-    const values = [Nombre, Correo, id];
+    const sql = `
+        UPDATE Estudiante 
+        SET Nombre = ?, Apellidos = ?, Matricula = ?, Correo = ?, Telefono = ?, PrepID = ?, CarreraInteres = ?, Municipio = ?, EsAceptado = ?, Notas = ?
+        WHERE EstudianteID = ?
+    `;
+    const values = [Nombre, Apellidos, Matricula, Correo, Telefono, PrepID || null, CarreraInteres, Municipio, EsAceptado, Notas, id];
 
     try {
         const result = await query(sql, values) as any;
@@ -137,16 +254,11 @@ export const actualizarEstudiante = async (req: Request, res: Response) => {
 // D E L E T E
 // ==========================================================
 
-/**
- * DELETE /api/estudiantes/:id
- * Elimina un estudiante por su ID.
- */
 export const eliminarEstudiante = async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
         const sql = 'DELETE FROM Estudiante WHERE EstudianteID = ?';
         const result = await query(sql, [id]) as any;
-
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Estudiante no encontrado para eliminar.' });
         }
@@ -154,7 +266,7 @@ export const eliminarEstudiante = async (req: Request, res: Response) => {
     } catch (error) {
         let errorMessage = 'Error al eliminar el estudiante.';
         if (isErrorWithMessage(error)) {
-            errorMessage = errorMessage;
+            errorMessage = error.message;
         }
         res.status(500).json({ message: errorMessage });
     }
